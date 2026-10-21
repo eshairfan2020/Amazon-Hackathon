@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-bg text-ink antialiased; }
+  :focus-visible { @apply outline outline-2 outline-offset-2 outline-ai; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+}
+@layer components {
+  .card { @apply rounded-2xl border border-line bg-surface p-4; }
+  .card-ai { @apply rounded-2xl border border-ai bg-surface p-4 shadow-[inset_3px_0_0_#8B5CF6]; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-surfaceHover disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2 text-sm font-semibold text-onPrimary transition-colors duration-150 hover:bg-primaryHover disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-secondary bg-secondary px-4 py-2 text-sm font-medium text-ink transition-colors duration-150 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-danger { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-danger bg-transparent px-4 py-2 text-sm font-medium text-danger transition-colors duration-150 hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50; }
+  .input { @apply w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-ai; }
+  .label { @apply mb-1 mt-3 block text-sm text-muted; }
+  .err { @apply min-h-[1.25rem] text-sm text-danger; }
+  .pill { @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-line bg-surfaceHover px-3 py-1 text-sm text-ink transition-colors duration-150 hover:border-ai; }
+  .nav-link { @apply flex items-center gap-3 rounded-xl border-l-4 border-transparent px-3 py-2.5 text-muted transition-colors duration-150 hover:bg-surfaceHover; }
+  .nav-link-active { @apply border-ai bg-ai/15 text-ink; }
+}

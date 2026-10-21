@@ -1,0 +1,21 @@
+{
+  "name": "anchor-ai-backend",
+  "version": "0.2.0",
+  "description": "Anchor AI inventory intelligence backend: REST API (Fastify), plain JavaScript (ESM).",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.0",
+    "@fastify/rate-limit": "^10.0.0",
+    "fastify": "^5.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": { "vitest": "^3.0.0" }
+}
