@@ -9,6 +9,7 @@ export function createMemoryRepository() {
   const skus = new Map(); // `${userId}|${skuId}`
   const sales = new Map(); // `${userId}|${skuId}` -> [{date, units}]
   const audit = [];
+  const adjustments = [];
   const k = (u, id) => `${u}|${id}`;
   const clone = (o) => (o == null ? o : structuredClone(o));
   const mine = (userId) => [...skus.values()].filter((s) => s.userId === userId);
@@ -47,6 +48,11 @@ export function createMemoryRepository() {
       const out = new Map();
       for (const s of mine(userId)) out.set(s.skuId, clone(sales.get(k(userId, s.skuId)) ?? []));
       return out;
+    },
+
+    async addAdjustment(entry) { adjustments.push(clone(entry)); },
+    async listAdjustments(userId, { limit = 20 } = {}) {
+      return clone(adjustments.filter((a) => a.userId === userId).slice(-limit).reverse());
     },
 
     async addAudit(entry) { audit.push(clone(entry)); },

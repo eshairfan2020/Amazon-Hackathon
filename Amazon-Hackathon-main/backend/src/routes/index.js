@@ -68,4 +68,19 @@ export async function registerRoutes(app, { services: s, config }) {
     need(req, 'admin');
     return ok(req, await s.audit.list(userId(req), { limit: 100 }));
   });
+
+  // ---- barcode scan & stock adjustments
+  app.get('/api/v1/scan/lookup', async (req) => ok(req, await s.scan.lookup(userId(req), validate(S.scanQuery, req.query).code)));
+  app.post('/api/v1/skus/:skuId/adjust', async (req) => {
+    need(req, 'admin', 'manager');
+    const { skuId } = validate(S.skuParams, req.params);
+    return ok(req, await s.scan.adjust(userId(req), skuId, validate(S.adjustBody, req.body)));
+  });
+  app.get('/api/v1/adjustments', async (req) => ok(req, await s.scan.history(userId(req), validate(S.adjustmentsQuery, req.query))));
+
+  // ---- AI business partner (read-only; stricter rate limit because each call may reach a paid model)
+  app.post('/api/v1/assistant/chat', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req) => {
+    const body = validate(S.chatBody, req.body);
+    return ok(req, await s.assistant.chat(userId(req), body));
+  });
 }

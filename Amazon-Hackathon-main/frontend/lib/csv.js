@@ -3,10 +3,10 @@ export const HEADER_MAP = {
   sku: 'sku', asin: 'asin', name: 'name', category: 'category', supplier: 'supplier',
   unit_cost: 'unitCost', selling_price: 'price', current_stock: 'currentStock', inbound_stock: 'inbound',
   reserved_stock: 'reserved', unfulfillable_stock: 'unfulfillable', warehouse: 'warehouse', marketplace: 'marketplace',
-  lead_time_days: 'leadTimeDays', safety_stock: 'safetyStock', reorder_point: 'reorderPoint', status: 'status',
+  lead_time_days: 'leadTimeDays', safety_stock: 'safetyStock', reorder_point: 'reorderPoint', status: 'status', barcode: 'barcode',
 };
 export const MAX_ROWS = 500;
-export const TEMPLATE_CSV = `${Object.keys(HEADER_MAP).join(',')}\nHOM-9001,B0EXAMPLE1,Example Product,Home,Acme Supply,6.5,19.99,120,0,3,0,FBA-ONT8,US,21,20,0,active\n`;
+export const TEMPLATE_CSV = `${Object.keys(HEADER_MAP).join(',')}\nHOM-9001,B0EXAMPLE1,Example Product,Home,Acme Supply,6.5,19.99,120,0,3,0,FBA-ONT8,US,21,20,0,active,8901000090012\n`;
 
 export function parseCsv(text) {
   const src = text.replace(/^\uFEFF/, '');

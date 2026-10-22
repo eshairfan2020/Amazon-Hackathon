@@ -28,6 +28,7 @@ export const skuShape = {
   safetyStock: units.default(0),
   reorderPoint: units.default(0),
   status: z.enum(SKU_STATUS).default('active'),
+  barcode: z.union([z.literal(''), z.string().trim().regex(/^\d{8,14}$/, 'Barcode must be 8-14 digits (EAN/UPC)')]).default(''),
 };
 
 export const skuCreate = z.object(skuShape).strict();
@@ -60,5 +61,26 @@ export const CSV_COLUMNS = [
   ['sku', 'sku'], ['asin', 'asin'], ['name', 'name'], ['category', 'category'], ['supplier', 'supplier'],
   ['unit_cost', 'unitCost'], ['selling_price', 'price'], ['current_stock', 'currentStock'], ['inbound_stock', 'inbound'],
   ['reserved_stock', 'reserved'], ['unfulfillable_stock', 'unfulfillable'], ['warehouse', 'warehouse'], ['marketplace', 'marketplace'],
-  ['lead_time_days', 'leadTimeDays'], ['safety_stock', 'safetyStock'], ['reorder_point', 'reorderPoint'], ['status', 'status'],
+  ['lead_time_days', 'leadTimeDays'], ['safety_stock', 'safetyStock'], ['reorder_point', 'reorderPoint'], ['status', 'status'], ['barcode', 'barcode'],
 ];
+
+// ---- barcode scan & stock adjustments
+export const scanQuery = z.object({ code: z.string().trim().min(2).max(40) });
+export const ADJUST_TYPES = ['receive', 'count', 'damaged'];
+export const adjustBody = z
+  .object({
+    type: z.enum(ADJUST_TYPES),
+    quantity: z.coerce.number().int().min(0).max(1_000_000),
+    note: z.string().trim().max(200).optional(),
+  })
+  .strict()
+  .refine((b) => b.type === 'count' || b.quantity > 0, { message: 'Quantity must be greater than 0', path: ['quantity'] });
+export const adjustmentsQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) });
+
+// ---- AI business partner chat
+export const chatBody = z
+  .object({
+    message: z.string().trim().min(1, 'Type a question').max(1000),
+    history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) })).max(10).default([]),
+  })
+  .strict();

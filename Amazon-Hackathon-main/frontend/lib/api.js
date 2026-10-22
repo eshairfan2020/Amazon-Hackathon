@@ -67,3 +67,11 @@ export async function exportSkusCsv(filters) {
   if (!res.ok) throw new Error(`Export failed (${res.status})`);
   return res.blob();
 }
+
+// ---- Barcode scan & stock adjustments
+export const lookupCode = async (code) => (await request(`/api/v1/scan/lookup${qs({ code })}`)).data;
+export const adjustStock = async (skuId, body) => (await request(`/api/v1/skus/${encodeURIComponent(skuId)}/adjust`, { method: 'POST', body })).data;
+export const listAdjustments = async () => (await request('/api/v1/adjustments?limit=20')).data;
+
+// ---- AI business partner (read-only chat)
+export const chat = async (message, history) => (await request('/api/v1/assistant/chat', { method: 'POST', body: { message, history } })).data;

@@ -1,6 +1,7 @@
 'use client';
 import Modal from './Modal';
 import RiskBadge from './RiskBadge';
+import BarcodeLabel from './BarcodeLabel';
 import { dash, money2, num, shortDate } from '@/lib/inventory';
 
 export default function SkuDetail({ item, onClose }) {
@@ -23,6 +24,11 @@ export default function SkuDetail({ item, onClose }) {
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         {rows.map(([k, v]) => <div key={k} className="flex justify-between gap-3 border-b border-line py-1"><dt className="text-muted">{k}</dt><dd className="font-medium">{v}</dd></div>)}
       </dl>
+      <section className="mt-4" aria-label="Barcode label">
+        <h3 className="mb-2 text-sm font-semibold">Barcode label</h3>
+        <BarcodeLabel code={item.barcode} />
+        <p className="mt-1 text-xs text-muted">Open Scan &amp; Count on your phone and point the camera at this code.</p>
+      </section>
       <p className="mt-3 text-xs text-muted">All figures are estimates from the last 90 days of sales, not guarantees.</p>
       <div className="mt-4 flex justify-end"><button className="btn" onClick={onClose}>Close</button></div>
     </Modal>

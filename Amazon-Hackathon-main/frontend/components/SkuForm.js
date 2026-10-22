@@ -5,7 +5,7 @@ import { STATUSES } from '@/lib/inventory';
 
 const TEXT = [['sku', 'SKU'], ['asin', 'ASIN'], ['name', 'Product name', true], ['category', 'Category'], ['supplier', 'Supplier'], ['warehouse', 'Warehouse / FBA location'], ['marketplace', 'Marketplace']];
 const NUM = [['unitCost', 'Unit cost ($)', '0.01'], ['price', 'Selling price ($)', '0.01'], ['currentStock', 'Current stock', '1'], ['inbound', 'Inbound stock', '1'], ['reserved', 'Reserved stock', '1'], ['unfulfillable', 'Unfulfillable stock', '1'], ['leadTimeDays', 'Lead time (days)', '1'], ['safetyStock', 'Safety stock', '1'], ['reorderPoint', 'Reorder point', '1']];
-const DEFAULTS = { sku: '', asin: '', name: '', category: '', supplier: '', warehouse: '', marketplace: 'US', unitCost: '', price: '', currentStock: '', inbound: '0', reserved: '0', unfulfillable: '0', leadTimeDays: '', safetyStock: '0', reorderPoint: '0', status: 'active' };
+const DEFAULTS = { sku: '', asin: '', name: '', category: '', supplier: '', warehouse: '', marketplace: 'US', unitCost: '', price: '', currentStock: '', inbound: '0', reserved: '0', unfulfillable: '0', leadTimeDays: '', safetyStock: '0', reorderPoint: '0', status: 'active', barcode: '' };
 
 function validate(v) {
   const e = {};
@@ -17,12 +17,13 @@ function validate(v) {
     if (v[k] === '' || !Number.isFinite(n) || n < 0) e[k] = 'Enter a number, 0 or more';
     else if (step === '1' && !Number.isInteger(n)) e[k] = 'Whole numbers only';
   });
+  if (v.barcode.trim() && !/^\d{8,14}$/.test(v.barcode.trim())) e.barcode = '8-14 digits (EAN/UPC)';
   if (!e.price && Number(v.price) <= 0) e.price = 'Must be greater than 0';
   return e;
 }
 
 export default function SkuForm({ item, categories = [], onSubmit, onCancel }) {
-  const [v, setV] = useState(item ? Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, String(item[k])])) : DEFAULTS);
+  const [v, setV] = useState(item ? Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, String(item[k] ?? '')])) : DEFAULTS);
   const [err, setErr] = useState({});
   const [fail, setFail] = useState('');
   const [busy, setBusy] = useState(false);
@@ -60,6 +61,7 @@ export default function SkuForm({ item, categories = [], onSubmit, onCancel }) {
         <div className="grid gap-x-4 sm:grid-cols-2">
           {TEXT.map(([k, label, full]) => field(k, label, { full, input: k === 'category' ? { list: 'sf-cats' } : {} }))}
           {NUM.map(([k, label, step]) => field(k, label, { input: { type: 'number', min: 0, step, inputMode: 'decimal' } }))}
+          {field('barcode', 'Barcode (EAN/UPC, optional)', { input: { inputMode: 'numeric' } })}
           <div>
             <label className="label !mt-0" htmlFor="sf-status">Status</label>
             <select id="sf-status" className="input" value={v.status} onChange={set('status')}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>

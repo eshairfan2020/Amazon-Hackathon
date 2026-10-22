@@ -41,6 +41,14 @@ const CATALOG = [
   ['Instant Coffee Sticks 50ct', 'Grocery', 4, 5, 14.99, 0.2, 280, 0, 21, 'active', 0],
 ];
 
+/** EAN-13 with a valid check digit, so generated labels scan correctly. */
+export function ean13(i) {
+  const body = `8901${String(10000000 + i * 7).padStart(8, '0')}`;
+  let sum = 0;
+  for (let k = 0; k < 12; k += 1) sum += Number(body[k]) * (k % 2 ? 3 : 1);
+  return body + ((10 - (sum % 10)) % 10);
+}
+
 function rng(seed) { // deterministic PRNG so demo data is identical on every run
   let a = seed >>> 0;
   return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -70,7 +78,7 @@ export async function seedCatalog(repo, userId, nowMs) {
       skuId: newId('sku'), userId, sku: `${category.slice(0, 3).toUpperCase()}-${1001 + i}`, asin: `B0ANCH${String(1000 + i)}`,
       name, category, supplier: SUP[sup], unitCost: cost, price, currentStock: stock, inbound, reserved: Math.round(stock * 0.03),
       unfulfillable: unf, warehouse: WH[i % WH.length], marketplace: i % 9 === 8 ? 'CA' : 'US', leadTimeDays: lead,
-      safetyStock: safety, reorderPoint: Math.ceil(daily * lead + safety), status, createdAt: stamp, updatedAt: stamp,
+      safetyStock: safety, reorderPoint: Math.ceil(daily * lead + safety), status, barcode: ean13(i), createdAt: stamp, updatedAt: stamp,
     });
     await repo.putSales(userId, sku.skuId, makeSales(i + 1, daily, nowMs));
   }

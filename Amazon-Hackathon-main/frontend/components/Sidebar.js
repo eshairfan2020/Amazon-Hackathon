@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const NAV = [['Dashboard', '/overview'], ['SKUs', '/skus'], ['Settings', '/settings']];
+const NAV = [['Dashboard', '/overview', '◧'], ['SKUs', '/skus', '▦'], ['Scan & Count', '/scan', '⌖'], ['AI Partner', '/assistant', '✦'], ['Settings', '/settings', '⚙']];
 
 export default function Sidebar({ open, collapsed, onClose, onToggle }) {
   const path = usePathname();
@@ -13,11 +13,11 @@ export default function Sidebar({ open, collapsed, onClose, onToggle }) {
         <button className="hidden rounded-lg px-2 text-muted hover:bg-surfaceHover md:block" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{collapsed ? '»' : '«'}</button>
       </div>
       <nav className="space-y-1">
-        {NAV.map(([label, href]) => {
+        {NAV.map(([label, href, icon]) => {
           const active = path === href;
           return (
             <Link key={href} href={href} onClick={onClose} title={label} aria-current={active ? 'page' : undefined} className={`nav-link ${active ? 'nav-link-active' : ''}`}>
-              <span className="w-5 text-center font-semibold">{label[0]}</span>
+              <span aria-hidden="true" className="w-5 text-center font-semibold">{icon}</span>
               {!collapsed && <span>{label}</span>}
             </Link>
           );
