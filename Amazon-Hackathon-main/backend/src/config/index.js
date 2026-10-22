@@ -119,7 +119,7 @@ export function loadConfig(env = process.env) {
     allowDemoUserSwitch: !isProduction && bool(env.ALLOW_DEMO_USER_SWITCH, true),
     tokenDigests,
     repository,
-    seedOnStart: !isProduction && bool(env.SEED_ON_START, true),
+    seedOnStart: bool(env.SEED_ON_START, !isProduction),
     dynamo: Object.freeze({
       tableName: env.DYNAMODB_TABLE || 'anchor-ai',
       region: env.AWS_REGION || 'us-east-1',

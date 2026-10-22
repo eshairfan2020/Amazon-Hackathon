@@ -1,0 +1,16 @@
+
+{
+  "version": 2,
+  "buildCommand": "npm install",
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
+}
