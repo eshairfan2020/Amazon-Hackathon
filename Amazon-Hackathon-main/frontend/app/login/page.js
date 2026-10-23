@@ -27,6 +27,7 @@ export default function LoginPage() {
           password,
           options: {
             data: { full_name: name.trim() },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
 
@@ -105,6 +106,7 @@ export default function LoginPage() {
             }`}
           >
             Sign in
+            
           </button>
           <button
             type="button"
@@ -215,6 +217,7 @@ export default function LoginPage() {
                 ? 'Create account'
                 : 'Sign in'}
           </button>
+          
         </form>
 
         <p className="mt-6 text-center text-xs leading-5 text-purple-200/40">
