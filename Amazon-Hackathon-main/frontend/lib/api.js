@@ -9,6 +9,8 @@ export const today = () => new Date();
 async function authHeaders() {
   try {
     const { data } = await supabase.auth.getSession();
+      console.log("Session Data:", data);
+    console.log("Session Error:", error);
     const token = data?.session?.access_token;
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch {
