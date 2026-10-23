@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import Modal from './Modal';
 import RiskBadge from './RiskBadge';
 import BarcodeLabel from './BarcodeLabel';
@@ -30,7 +31,10 @@ export default function SkuDetail({ item, onClose }) {
         <p className="mt-1 text-xs text-muted">Open Scan &amp; Count on your phone and point the camera at this code.</p>
       </section>
       <p className="mt-3 text-xs text-muted">All figures are estimates from the last 90 days of sales, not guarantees.</p>
-      <div className="mt-4 flex justify-end"><button className="btn" onClick={onClose}>Close</button></div>
+      <div className="mt-4 flex justify-end gap-2">
+        <Link href={`/orders?sku=${encodeURIComponent(item.sku)}`} className="btn" onClick={onClose}>View orders for this SKU</Link>
+        <button className="btn" onClick={onClose}>Close</button>
+      </div>
     </Modal>
   );
 }

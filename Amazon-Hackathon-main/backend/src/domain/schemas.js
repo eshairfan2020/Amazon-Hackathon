@@ -84,3 +84,38 @@ export const chatBody = z
     history: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) })).max(10).default([]),
   })
   .strict();
+
+// ---- orders, deliveries and customers
+export const ORDER_STATUS = ['pending', 'shipped', 'delivered', 'returned', 'cancelled'];
+const blank = (schema) => z.preprocess((v) => (v === '' || v == null ? undefined : v), schema.optional());
+const dateStr = z.string().trim().refine((s) => !Number.isNaN(Date.parse(s)), 'Invalid date (use YYYY-MM-DD)');
+const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const orderListQuery = z.object({
+  status: z.enum(ORDER_STATUS).optional(),
+  q: z.string().trim().max(100).optional(),
+  sku: z.string().trim().max(40).optional(),
+  from: day.optional(), to: day.optional(),
+  sort: z.enum(['placedAt', 'total', 'status']).default('placedAt'),
+  dir: z.enum(['asc', 'desc']).default('desc'),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  cursor: z.string().regex(/^\d{1,7}$/).optional(),
+});
+export const orderParams = z.object({ orderId: z.string().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/) });
+export const summaryQuery = z.object({ days: z.coerce.number().int().refine((d) => [7, 30, 90].includes(d), 'days must be 7, 30 or 90').default(30) });
+export const customersQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) });
+export const customerParams = z.object({ customerRef: z.string().min(1).max(40).regex(/^[A-Za-z0-9_-]+$/) });
+export const importOrdersBody = z.object({ rows: z.array(z.record(z.unknown())).min(1).max(500) });
+/** One CSV row = one order line. Customer IDs must be anonymous (no names or emails). */
+export const orderLineRow = z.object({
+  orderNumber: z.string().trim().min(1).max(40).regex(/^[A-Za-z0-9._-]+$/, 'Letters, numbers, . _ - only'),
+  placedAt: dateStr,
+  sku: z.string().trim().min(2).max(40).transform((s) => s.toUpperCase()),
+  quantity: z.coerce.number().int().min(1).max(100000),
+  unitPrice: blank(z.coerce.number().min(0).max(1_000_000)),
+  status: blank(z.enum(ORDER_STATUS)),
+  customerRef: blank(z.string().trim().max(40).regex(/^[A-Za-z0-9_-]+$/, 'Use an anonymous customer ID (letters, numbers, - _), never a name or email')),
+  carrier: blank(z.string().trim().max(40)),
+  trackingRef: blank(z.string().trim().max(60)),
+  shippedAt: blank(dateStr),
+  deliveredAt: blank(dateStr),
+});

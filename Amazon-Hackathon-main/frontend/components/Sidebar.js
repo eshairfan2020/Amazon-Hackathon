@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const NAV = [['Dashboard', '/overview', '◧'], ['SKUs', '/skus', '▦'], ['Scan & Count', '/scan', '⌖'], ['AI Partner', '/assistant', '✦'], ['Settings', '/settings', '⚙']];
+const NAV = [['Dashboard', '/overview', '◧'], ['SKUs', '/skus', '▦'], ['Orders', '/orders', '⇄'], ['Scan & Count', '/scan', '⌖'], ['AI Partner', '/assistant', '✦'], ['Settings', '/settings', '⚙']];
 
 export default function Sidebar({ open, collapsed, onClose, onToggle }) {
   const path = usePathname();

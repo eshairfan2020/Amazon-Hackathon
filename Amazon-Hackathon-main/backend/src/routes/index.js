@@ -83,4 +83,18 @@ export async function registerRoutes(app, { services: s, config }) {
     const body = validate(S.chatBody, req.body);
     return ok(req, await s.assistant.chat(userId(req), body));
   });
+
+  // ---- orders, deliveries, customers (anonymous IDs only)
+  app.get('/api/v1/orders/summary', async (req) => ok(req, await s.orders.summary(userId(req), validate(S.summaryQuery, req.query).days)));
+  app.post('/api/v1/orders/import', { bodyLimit: 1024 * 1024 }, async (req) => {
+    need(req, 'admin', 'manager');
+    return ok(req, await s.orders.importRows(userId(req), validate(S.importOrdersBody, req.body).rows));
+  });
+  app.get('/api/v1/orders', async (req) => {
+    const page = await s.orders.list(userId(req), validate(S.orderListQuery, req.query));
+    return ok(req, page.items, { total: page.total, nextCursor: page.nextCursor });
+  });
+  app.get('/api/v1/orders/:orderId', async (req) => ok(req, await s.orders.get(userId(req), validate(S.orderParams, req.params).orderId)));
+  app.get('/api/v1/customers', async (req) => ok(req, await s.orders.customers(userId(req), validate(S.customersQuery, req.query))));
+  app.get('/api/v1/customers/:customerRef', async (req) => ok(req, await s.orders.customerHistory(userId(req), validate(S.customerParams, req.params).customerRef)));
 }

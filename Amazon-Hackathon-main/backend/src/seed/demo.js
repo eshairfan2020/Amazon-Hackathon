@@ -1,5 +1,6 @@
 import { newId } from '../utils/ids.js';
 import { startOfUtcDay } from '../domain/inventory.js';
+import { seedOrders } from './orders.js';
 
 export const DEMO_USERS = Object.freeze({ esha: 'user_esha' });
 const DAY = 86_400_000;
@@ -70,18 +71,22 @@ export function makeSales(index, base, nowMs) {
 
 export async function seedCatalog(repo, userId, nowMs) {
   const stamp = new Date(nowMs).toISOString();
+  const made = [];
   for (let i = 0; i < CATALOG.length; i += 1) {
     const [name, category, sup, cost, price, daily, cover, inbound, lead, status, unf] = CATALOG[i];
     const stock = Math.round(daily * cover);
     const safety = Math.ceil(daily * 4);
     const sku = await repo.createSku({
-      skuId: newId('sku'), userId, sku: `${category.slice(0, 3).toUpperCase()}-${1001 + i}`, asin: `B0ANCH${String(1000 + i)}`,
+      skuId: `sku_demo_${String(i + 1).padStart(2, '0')}`, userId, sku: `${category.slice(0, 3).toUpperCase()}-${1001 + i}`, asin: `B0ANCH${String(1000 + i)}`,
       name, category, supplier: SUP[sup], unitCost: cost, price, currentStock: stock, inbound, reserved: Math.round(stock * 0.03),
       unfulfillable: unf, warehouse: WH[i % WH.length], marketplace: i % 9 === 8 ? 'CA' : 'US', leadTimeDays: lead,
       safetyStock: safety, reorderPoint: Math.ceil(daily * lead + safety), status, barcode: ean13(i), createdAt: stamp, updatedAt: stamp,
     });
-    await repo.putSales(userId, sku.skuId, makeSales(i + 1, daily, nowMs));
+    const rows = makeSales(i + 1, daily, nowMs);
+    await repo.putSales(userId, sku.skuId, rows);
+    made.push({ sku, rows });
   }
+  await seedOrders(repo, userId, made, nowMs);
   return CATALOG.length;
 }
 

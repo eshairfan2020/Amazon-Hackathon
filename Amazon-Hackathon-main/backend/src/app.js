@@ -1,4 +1,3 @@
-
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -22,7 +21,7 @@ export async function buildApp(runtime, { logger } = {}) {
     requestIdHeader: 'x-request-id',
     genReqId: () => newId('req'),
     bodyLimit: 64 * 1024,
-    trustProxy: false,
+    trustProxy: config.trustProxy,
   });
 
   await app.register(cors, {
@@ -169,6 +168,7 @@ export async function buildApp(runtime, { logger } = {}) {
     }
 
     const user = await services.users.ensure(userId, profile);
+    if (config.autoDemoData) await services.demo.ensureLoaded(userId);
     req.auth = { userId, role: user.role ?? 'viewer', mode: config.authMode };
 
     await services.users.touch(userId).catch(() => {});

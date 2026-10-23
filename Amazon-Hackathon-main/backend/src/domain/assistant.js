@@ -135,12 +135,36 @@ function pricing(message, items, found, nums) {
   };
 }
 
+function ordersReply(message, o) {
+  if (!o?.hasOrders) return { reply: 'I do not see any orders yet. Orders appear here once you import them (Orders page, Import CSV) or load the demo data in Settings.', suggestions: [] };
+  const t = norm(message);
+  const win = /\b(week|7 days)\b/.test(t) ? 7 : /\b(quarter|90)\b/.test(t) ? 90 : 30;
+  const w = o[`w${win}`];
+  const label = win === 7 ? 'the last 7 days' : `the last ${win} days`;
+  const demo = w.demo ? '\n\n(These are synthetic demo orders.)' : '';
+  const chips = ['How many orders were delivered this week?', 'Which products get returned most?', 'Who are my best customers?'];
+  if (/return/.test(t)) {
+    if (!w.returnsBySku.length) return { reply: `In ${label} I see ${w.returned} returned orders, and no single product stands out yet.${demo}`, suggestions: chips };
+    const lines = w.returnsBySku.map((r) => bullet(`**${r.name}** (${r.sku}): ${r.returned} of ${r.orders} orders returned (${r.rate}%).`));
+    return { reply: `Over ${label}, **${w.returned} orders** were returned (${w.returnRate}% of delivered parcels). Products returned most often:\n\n${lines.join('\n')}\n\nCheck the listing, packaging and supplier quality on the top one first.${demo}`, suggestions: chips, references: w.returnsBySku.map((r) => ({ sku: r.sku, name: r.name })) };
+  }
+  if (/customer|buyer|repeat|loyal/.test(t)) {
+    const lines = o.topCustomers.map((c) => bullet(`**${c.customerRef}**: ${c.orders} order${c.orders === 1 ? "" : "s"}, ${money(c.spend)} spent.`));
+    return { reply: `You have **${o.totalCustomers} customers** on record and **${o.repeatRate}%** of them ordered more than once. Your top customers by spend:\n\n${lines.join('\n')}\n\nCustomers are anonymous IDs, so I never see names or addresses. A thank-you offer or bundle for repeat buyers is a cheap way to grow sales.${demo}`, suggestions: chips };
+  }
+  const avg = w.avgDeliveryDays == null ? '' : ` Parcels take about **${w.avgDeliveryDays} days** from order to delivery.`;
+  return {
+    reply: `In ${label} you received **${w.received} orders**.\n\n${[`**${w.parcelsDelivered}** parcels delivered to customers`, `**${w.inTransit}** in transit`, `**${w.pending}** waiting to ship`, `**${w.returned}** returned and **${w.cancelled}** cancelled`].map(bullet).join('\n')}\n\nRevenue after cancellations and returns is about **${money(w.revenue)}** from ${w.units} units.${avg}${demo}`,
+    suggestions: chips,
+  };
+}
+
 const HELP = {
-  reply: 'Hi! I am your inventory and pricing partner. I look at your real stock and sales numbers and help you decide what to do next. I can:\n\n- Check how your inventory is doing\n- Tell you what to reorder and when\n- Spot overstock that is tying up your cash\n- Look up how many units of any product you have\n- Work out profit margins and suggest prices\n\nWhat would you like to start with?',
-  suggestions: ['How is my inventory doing?', 'What should I reorder today?', 'Which products are overstocked?', 'Which products have the lowest margin?'],
+  reply: 'Hi! I am your inventory and pricing partner. I look at your real stock and sales numbers and help you decide what to do next. I can:\n\n- Check how your inventory is doing\n- Tell you what to reorder and when\n- Spot overstock that is tying up your cash\n- Look up how many units of any product you have\n- Work out profit margins and suggest prices\n- Summarise orders, deliveries, returns and repeat customers\n\nWhat would you like to start with?',
+  suggestions: ['How is my inventory doing?', 'What should I reorder today?', 'Which products are overstocked?', 'Which products have the lowest margin?', 'How many orders were delivered this week?'],
 };
 
-export function buildReply(message, items) {
+export function buildReply(message, items, orders) {
   const text = norm(message);
   if (!items.length) {
     return { intent: 'empty', reply: 'I do not see any products in your inventory yet. Add your first product on the SKUs page (or import a CSV, or load the demo data in Settings) and I will start analysing it right away.', suggestions: [] };
@@ -155,6 +179,7 @@ export function buildReply(message, items) {
   if (has(/^(hi|hello|hey|salam|assalam)\b|\bhelp\b|what can you do/) && text.length < 40) { intent = 'help'; out = HELP; }
   else if (has(/low margin|lowest margin|thin margin|best margin|worst margin|margins?\b.*\b(all|every|products)/)) { intent = 'margins'; out = lowMargin(items, feePct); }
   else if (has(/(how much|total|all).*(profit|earn)|profit.*(stock|inventory)/) && !found) { intent = 'profit'; out = profitInStock(items, feePct); }
+  else if (has(/\borders\b|order history|parcel|deliver|shipment|shipped|in transit|returned|returns?\b|cancel|customer|buyer|repeat/)) { intent = 'orders'; out = ordersReply(message, orders); }
   else if (has(/\b(price|pricing|margin|profit|cost|costs|sell|selling|markup|discount|worth)\b/)) { intent = 'pricing'; out = pricing(message, items, found, nums); }
   else if (has(/reorder|restock|order more|running out|run out|stock ?out|low stock|short on|critical|what (should|do) i (buy|order)/)) { intent = 'reorder'; out = reorder(items); }
   else if (has(/overstock|excess|too much|slow|dead stock|stranded|not selling|clearance|tied up/)) { intent = 'overstock'; out = overstock(items); }

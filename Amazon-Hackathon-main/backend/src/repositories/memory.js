@@ -10,6 +10,7 @@ export function createMemoryRepository() {
   const sales = new Map(); // `${userId}|${skuId}` -> [{date, units}]
   const audit = [];
   const adjustments = [];
+  const orders = new Map(); // `${userId}|${orderId}`
   const k = (u, id) => `${u}|${id}`;
   const clone = (o) => (o == null ? o : structuredClone(o));
   const mine = (userId) => [...skus.values()].filter((s) => s.userId === userId);
@@ -49,6 +50,13 @@ export function createMemoryRepository() {
       for (const s of mine(userId)) out.set(s.skuId, clone(sales.get(k(userId, s.skuId)) ?? []));
       return out;
     },
+
+    async addOrders(list) { for (const o of list) orders.set(k(o.userId, o.orderId), clone(o)); },
+    async putOrder(o) { orders.set(k(o.userId, o.orderId), clone(o)); return clone(o); },
+    async getOrder(userId, orderId) { return clone(orders.get(k(userId, orderId)) ?? null); },
+    async findOrderByNumber(userId, number) { return clone([...orders.values()].find((o) => o.userId === userId && o.orderNumber === number) ?? null); },
+    async listOrders(userId) { return clone([...orders.values()].filter((o) => o.userId === userId)); },
+    async countOrders(userId) { return [...orders.values()].filter((o) => o.userId === userId).length; },
 
     async addAdjustment(entry) { adjustments.push(clone(entry)); },
     async listAdjustments(userId, { limit = 20 } = {}) {

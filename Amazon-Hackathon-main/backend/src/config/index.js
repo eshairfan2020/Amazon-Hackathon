@@ -1,4 +1,3 @@
-
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { mergeInventoryConfig } from '../domain/inventory.js';
 
@@ -21,12 +20,6 @@ export function loadConfig(env = process.env) {
   const isProduction = nodeEnv === 'production';
 
   const authMode = env.AUTH_MODE || (isProduction ? 'bearer' : 'demo');
-
-  
-  // HACKATHON HACK: Force add a dummy token if none exists
-  if (authMode === 'bearer' && list(env.AUTH_TOKENS).length === 0) {
-      tokenDigests.set(sha256('demo_token_1234567890'), 'user_esha');
-  }
 
   if (!['demo', 'bearer', 'supabase'].includes(authMode)) {
     errors.push(
@@ -63,9 +56,9 @@ export function loadConfig(env = process.env) {
 
     const token = pair.slice(0, i);
 
-    // if (token.length < 16) {
-    //   errors.push('AUTH_TOKENS tokens must be at least 16 characters.');
-    // }
+    if (token.length < 16) {
+      errors.push('AUTH_TOKENS tokens must be at least 16 characters.');
+    }
 
     tokenDigests.set(sha256(token), pair.slice(i + 1));
   }
@@ -108,9 +101,8 @@ export function loadConfig(env = process.env) {
     }
   }
 
-   if (errors.length) {
-    // throw new Error(`Invalid configuration:\n-${errors.join('\n- ')}`);
-    console.warn(`Invalid configuration (ignoring for hackathon):\n-${errors.join('\n- ')}`);
+  if (errors.length) {
+    throw new Error(`Invalid configuration:\n-${errors.join('\n- ')}`);
   }
 
   return Object.freeze({
@@ -126,7 +118,11 @@ export function loadConfig(env = process.env) {
     allowDemoUserSwitch: !isProduction && bool(env.ALLOW_DEMO_USER_SWITCH, true),
     tokenDigests,
     repository,
-    seedOnStart: bool(env.SEED_ON_START, !isProduction),
+    seedOnStart: !isProduction && bool(env.SEED_ON_START, true),
+    // Demo-only convenience for stateless hosts (e.g. Vercel): give every signed-in user the synthetic demo catalog on first request.
+    autoDemoData: bool(env.AUTO_DEMO_DATA, false),
+    // Set TRUST_PROXY=true behind Vercel/other proxies so rate limiting sees each client's real IP.
+    trustProxy: bool(env.TRUST_PROXY, false),
     dynamo: Object.freeze({
       tableName: env.DYNAMODB_TABLE || 'anchor-ai',
       region: env.AWS_REGION || 'us-east-1',

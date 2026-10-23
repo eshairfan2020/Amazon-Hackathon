@@ -75,3 +75,13 @@ export const listAdjustments = async () => (await request('/api/v1/adjustments?l
 
 // ---- AI business partner (read-only chat)
 export const chat = async (message, history) => (await request('/api/v1/assistant/chat', { method: 'POST', body: { message, history } })).data;
+
+// ---- Orders, deliveries and customers (anonymous customer IDs only)
+export const getOrderSummary = async (days) => (await request(`/api/v1/orders/summary${qs({ days })}`)).data;
+export const listOrders = async (params) => {
+  const json = await request(`/api/v1/orders${qs(params)}`);
+  return { items: json.data, total: json.meta.total, nextCursor: json.meta.nextCursor };
+};
+export const getCustomers = async () => (await request('/api/v1/customers?limit=10')).data;
+export const getCustomer = async (ref) => (await request(`/api/v1/customers/${encodeURIComponent(ref)}`)).data;
+export const importOrders = async (rows) => (await request('/api/v1/orders/import', { method: 'POST', body: { rows } })).data;
