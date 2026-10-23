@@ -83,7 +83,7 @@ export default function LoginPage() {
             ✦
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            ANCHOR <span className="text-pink-300">AI</span>
+            Inventory Managment System <span className="text-pink-300"></span>
           </h1>
           <p className="mt-2 text-sm text-purple-200/70">
             Your context-aware workspace assistant
