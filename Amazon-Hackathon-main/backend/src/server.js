@@ -39,3 +39,4 @@ try {
   app.log.error({ err: { message: err.message } }, 'failed to start');
   process.exit(1);
 }
+export default app
