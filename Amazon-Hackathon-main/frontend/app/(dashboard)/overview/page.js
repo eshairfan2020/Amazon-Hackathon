@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import MetricCard from '@/components/MetricCard';
-import BotCard from '@/components/BotCard';
+import BotDock from '@/components/BotDock';
 import FilterBar, { EMPTY_FILTERS } from '@/components/FilterBar';
 import BarChart from '@/components/BarChart';
 import LineChart from '@/components/LineChart';
@@ -44,7 +44,6 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader title="Inventory Dashboard" subtitle="Stock health, sales velocity and stockout risk across your catalog" actions={<><button className="btn" onClick={reload}>Refresh</button><Link href="/skus" className="btn-primary">Manage SKUs</Link></>} />
-      {data && <BotCard totals={data.totals} filtered={filtered} />}
       {data && <FilterBar facets={data.filters} value={filters} onChange={setFilters} />}
       {loading && !data && <LoadingSkeleton rows={4} />}
       {error && <ErrorState message={error} onRetry={reload} />}
@@ -86,6 +85,7 @@ export default function DashboardPage() {
           </section>
         </div>
       )}
+      <BotDock totals={data?.totals ?? null} filtered={filtered} />
       {toast}
     </>
   );

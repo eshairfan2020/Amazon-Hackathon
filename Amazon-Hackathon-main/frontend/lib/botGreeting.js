@@ -1,3 +1,4 @@
+/** Greeting and mood come from the dashboard numbers, never from guesses. */
 export function greet(t, filtered = false) {
   const scope = filtered ? 'In this view, ' : '';
   if (!t || t.totalSkus === 0) {

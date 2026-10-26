@@ -39,6 +39,7 @@ export default function BotDock({ totals, filtered = false }) {
   const wakeApi = useRef(null);
   const sendRef = useRef(null);
   const inputRef = useRef(null);
+  const endRef = useRef(null);
 
   // Browsers only allow the bot to talk after the visitor has interacted with the page once.
   useEffect(() => {
@@ -67,6 +68,7 @@ export default function BotDock({ totals, filtered = false }) {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
+  useEffect(() => { if (open) endRef.current?.scrollIntoView({ block: 'end' }); }, [open, log, thinking]);
 
   const say = useCallback((line) => {
     if (!voiceOn || !('speechSynthesis' in window)) return false;
@@ -154,6 +156,7 @@ export default function BotDock({ totals, filtered = false }) {
               </p>
             ))}
             {thinking && <p className="text-sm text-ai" role="status">Let me check…</p>}
+            <div ref={endRef} />
           </div>
           {confirming && (
             <div className="mt-2 flex gap-2" role="group" aria-label="Confirm change">
