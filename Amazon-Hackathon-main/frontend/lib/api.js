@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 
 // Kept for AppShell compatibility: data now always comes from the backend (which serves labelled demo data).
 export const USE_MOCK = false;
@@ -9,8 +9,6 @@ export const today = () => new Date();
 async function authHeaders() {
   try {
     const { data } = await supabase.auth.getSession();
-      console.log("Session Data:", data);
-    console.log("Session Error:", error);
     const token = data?.session?.access_token;
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch {
@@ -26,11 +24,17 @@ const qs = (o = {}) => {
 };
 
 async function call(path, { method = 'GET', body } = {}) {
+  const auth = await authHeaders();
+  if (!auth.Authorization) {
+    const err = new Error('You are signed out, so the API cannot identify you. Please sign in again.');
+    err.status = 401;
+    throw err;
+  }
   let res;
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(await authHeaders()) },
+      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...auth },
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
@@ -44,7 +48,8 @@ async function request(path, options) {
   let json = null;
   try { json = await res.json(); } catch { /* non-JSON body */ }
   if (!res.ok) {
-    const err = new Error(json?.error?.message || `Request failed (${res.status})`);
+    const hint = res.status === 401 ? ' (the API rejected your session: the frontend and backend must use the same Supabase project; try signing out and in)' : '';
+    const err = new Error(`${json?.error?.message || `Request failed (${res.status})`}${hint}`);
     err.status = res.status;
     err.details = json?.error?.details;
     throw err;
@@ -87,3 +92,20 @@ export const listOrders = async (params) => {
 export const getCustomers = async () => (await request('/api/v1/customers?limit=10')).data;
 export const getCustomer = async (ref) => (await request(`/api/v1/customers/${encodeURIComponent(ref)}`)).data;
 export const importOrders = async (rows) => (await request('/api/v1/orders/import', { method: 'POST', body: { rows } })).data;
+
+// ---- Connection check helpers (used on the Settings page)
+export async function getHealth() {
+  const res = await fetch(`${API_BASE}/health`);
+  const text = await res.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch { /* not JSON */ }
+  return { status: res.status, json, isJson: json != null };
+}
+export async function getSessionInfo() {
+  const { data } = await supabase.auth.getSession();
+  const s = data?.session;
+  return { signedIn: Boolean(s), email: s?.user?.email ?? null, expiresAt: s?.expires_at ? new Date(s.expires_at * 1000).toISOString() : null };
+}
+
+// ---- Voice commands (same engine as the Alexa skill). `pending` is the confirmation state returned by the previous call.
+export const voiceCommand = async (text, pending) => (await request('/api/v1/voice/command', { method: 'POST', body: { text, pending: pending ?? null } })).data;

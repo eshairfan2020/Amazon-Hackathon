@@ -27,7 +27,7 @@ export default function SkuTable({ items, sort, dir, onSort, canEdit, canDelete,
           {items.map((i) => (
             <tr key={i.skuId} className="border-b border-line last:border-0 hover:bg-surfaceHover">
               <td className="px-3 py-2"><div className="font-medium">{i.sku}</div><div className="text-xs text-muted">{i.asin}</div></td>
-              <td className="max-w-[220px] px-3 py-2"><div className="truncate">{i.name}</div><div className="truncate text-xs text-muted">{i.supplier}</div></td>
+              <td className="max-w-[220px] px-3 py-2"><div className="truncate">{i.name}{i.needsDetails && <span className="pill ml-2 border-warning/50 text-warning">Needs details</span>}</div><div className="truncate text-xs text-muted">{i.supplier}</div></td>
               <td className="px-3 py-2">{i.category}</td>
               <td className="px-3 py-2">{num(i.currentStock)}</td>
               <td className="px-3 py-2">{num(i.inbound)}</td>

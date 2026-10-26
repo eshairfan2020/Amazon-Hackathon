@@ -82,7 +82,9 @@ export function createSkuService({ repo, config, clock, audit }) {
     },
 
     async update(userId, skuId, patch) {
-      await repo.updateSku(userId, skuId, { ...patch, updatedAt: now() });
+      const cur = await repo.getSku(userId, skuId);
+      const completed = cur?.needsDetails && patch.price > 0 && patch.supplier && patch.supplier !== 'Unknown' && patch.asin && !patch.asin.startsWith('TBD');
+      await repo.updateSku(userId, skuId, { ...patch, ...(completed ? { needsDetails: false } : {}), updatedAt: now() });
       await audit.record(userId, 'sku.update', 'sku', skuId, `Updated fields: ${Object.keys(patch).join(', ')}`);
       return this.get(userId, skuId);
     },
@@ -104,7 +106,7 @@ export function createSkuService({ repo, config, clock, audit }) {
         const r = skuImportRow.safeParse(rows[i]);
         if (!r.success) { failed.push({ row: i + 1, errors: r.error.issues.map((x) => `${x.path.join('.') || 'row'}: ${x.message}`) }); continue; }
         const existing = await repo.findSkuByCode(userId, r.data.sku);
-        if (existing) { await repo.updateSku(userId, existing.skuId, { ...r.data, updatedAt: now() }); updated += 1; }
+        if (existing) { await repo.updateSku(userId, existing.skuId, { ...r.data, needsDetails: false, updatedAt: now() }); updated += 1; }
         else { const t = now(); await repo.createSku({ ...r.data, skuId: newId('sku'), userId, createdAt: t, updatedAt: t }); created += 1; }
       }
       await audit.record(userId, 'sku.import', 'sku', 'bulk', `Import: ${created} created, ${updated} updated, ${failed.length} failed`);

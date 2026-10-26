@@ -27,6 +27,9 @@ export function loadConfig(env = process.env) {
     );
   }
 
+  if (isProduction && !bool(env.ALEXA_VERIFY, true)) {
+    errors.push('ALEXA_VERIFY=false is not allowed in production.');
+  }
   if (isProduction && authMode === 'demo') {
     errors.push('AUTH_MODE=demo is not allowed in production; use "supabase" or "bearer".');
   }
@@ -140,6 +143,8 @@ export function loadConfig(env = process.env) {
     devAdminToken,
     inventory: mergeInventoryConfig(riskOverrides),
     adminEmails: list(env.ADMIN_EMAILS).map((e) => e.toLowerCase()),
+    // Alexa custom skill. ALEXA_LINKS maps Alexa user ids to Anchor user ids: "amzn1.ask.account.X:anchor-user-id,..."
+    alexa: { skillId: env.ALEXA_SKILL_ID || '', verify: bool(env.ALEXA_VERIFY, true), links: list(env.ALEXA_LINKS) },
   });
 }
 

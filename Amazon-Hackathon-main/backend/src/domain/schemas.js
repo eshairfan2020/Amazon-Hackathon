@@ -119,3 +119,14 @@ export const orderLineRow = z.object({
   shippedAt: blank(dateStr),
   deliveredAt: blank(dateStr),
 });
+
+// ---- voice commands (in-app simulator and Alexa session state)
+export const voicePending = z
+  .object({
+    type: z.enum(['create', 'receive', 'ask_quantity']),
+    name: z.string().trim().min(1).max(80),
+    quantity: z.coerce.number().int().min(1).max(100000).optional(),
+    skuId: z.string().max(64).regex(/^[A-Za-z0-9_-]+$/).optional(),
+  })
+  .strict();
+export const voiceBody = z.object({ text: z.string().trim().min(1).max(300), pending: voicePending.nullable().optional() }).strict();

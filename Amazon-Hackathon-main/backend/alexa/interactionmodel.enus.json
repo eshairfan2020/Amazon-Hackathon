@@ -1,0 +1,85 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "anchor inventory",
+      "intents": [
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] },
+        { "name": "AMAZON.YesIntent", "samples": [] },
+        { "name": "AMAZON.NoIntent", "samples": [] },
+        {
+          "name": "AddItemIntent",
+          "slots": [
+            { "name": "quantity", "type": "AMAZON.NUMBER" },
+            { "name": "product", "type": "PRODUCT_NAME" }
+          ],
+          "samples": [
+            "add {quantity} {product} to my inventory",
+            "add {quantity} {product}",
+            "put {quantity} {product} in my inventory",
+            "add {product} to my inventory",
+            "add {product}",
+            "i received {quantity} {product}"
+          ]
+        },
+        {
+          "name": "StockLevelIntent",
+          "slots": [{ "name": "product", "type": "PRODUCT_NAME" }],
+          "samples": [
+            "how many {product} do i have",
+            "how many {product} are left",
+            "how much {product} is left",
+            "check stock of {product}",
+            "what is the stock of {product}"
+          ]
+        },
+        {
+          "name": "LowStockIntent",
+          "slots": [],
+          "samples": ["what is running low", "what is low on stock", "which products are running out", "what is low", "what is almost out of stock"]
+        },
+        {
+          "name": "ReorderIntent",
+          "slots": [],
+          "samples": ["what should i reorder", "what should i reorder today", "what should i order today", "what do i need to restock"]
+        }
+      ],
+      "types": [
+        {
+          "name": "PRODUCT_NAME",
+          "values": [
+            { "name": { "value": "body lotion" } },
+            { "name": { "value": "yoga mat" } },
+            { "name": { "value": "water bottle" } },
+            { "name": { "value": "protein bars" } },
+            { "name": { "value": "vitamin c serum" } },
+            { "name": { "value": "resistance bands" } },
+            { "name": { "value": "phone charger" } },
+            { "name": { "value": "hand soap" } },
+            { "name": { "value": "olive oil" } },
+            { "name": { "value": "face mask" } }
+          ]
+        }
+      ]
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "AddItemIntent",
+          "confirmationRequired": false,
+          "slots": [
+            { "name": "quantity", "type": "AMAZON.NUMBER", "confirmationRequired": false, "elicitationRequired": true, "prompts": { "elicitation": "Elicit.Slot.AddItem.quantity" } },
+            { "name": "product", "type": "PRODUCT_NAME", "confirmationRequired": false, "elicitationRequired": true, "prompts": { "elicitation": "Elicit.Slot.AddItem.product" } }
+          ]
+        }
+      ]
+    },
+    "prompts": [
+      { "id": "Elicit.Slot.AddItem.quantity", "variations": [{ "type": "PlainText", "value": "How many units?" }] },
+      { "id": "Elicit.Slot.AddItem.product", "variations": [{ "type": "PlainText", "value": "Which product should I add?" }] }
+    ]
+  }
+}

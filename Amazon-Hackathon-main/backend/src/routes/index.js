@@ -1,6 +1,8 @@
 import { validate } from '../utils/validate.js';
 import { forbidden } from '../utils/errors.js';
 import * as S from '../domain/schemas.js';
+import { AppError } from '../utils/errors.js';
+import { handleAlexaRequest, parseLinks } from '../alexa/skill.js';
 
 /**
  * REST routes. Handlers validate with zod, take the AUTHENTICATED user and role from `req.auth`
@@ -97,4 +99,21 @@ export async function registerRoutes(app, { services: s, config }) {
   app.get('/api/v1/orders/:orderId', async (req) => ok(req, await s.orders.get(userId(req), validate(S.orderParams, req.params).orderId)));
   app.get('/api/v1/customers', async (req) => ok(req, await s.orders.customers(userId(req), validate(S.customersQuery, req.query))));
   app.get('/api/v1/customers/:customerRef', async (req) => ok(req, await s.orders.customerHistory(userId(req), validate(S.customerParams, req.params).customerRef)));
+
+  // ---- voice: in-app simulator (authenticated) and the Alexa skill endpoint (verified by Amazon signature)
+  app.post('/api/v1/voice/command', async (req) => ok(req, await s.voice.command(userId(req), validate(S.voiceBody, req.body))));
+
+  const links = parseLinks(config.alexa?.links);
+  // Not awaited on purpose: awaiting here would finish route setup before app.js installs the shared error handler.
+  app.register(async (scope) => {
+    scope.removeContentTypeParser('application/json');
+    scope.addContentTypeParser('application/json', { parseAs: 'string', bodyLimit: 256 * 1024 }, (req, raw, done) => {
+      try { req.rawBody = raw; done(null, JSON.parse(raw)); } catch (e) { e.statusCode = 400; done(e); }
+    });
+    scope.post('/api/v1/alexa', { config: { public: true, rateLimit: { max: 600, timeWindow: '1 minute' } } }, async (req) => {
+      if (!config.alexa?.skillId) throw new AppError(503, 'ALEXA_NOT_CONFIGURED', 'The Alexa skill is not configured (set ALEXA_SKILL_ID)');
+      if (config.alexa.verify) await s.verifyAlexa({ headers: req.headers, rawBody: req.rawBody, body: req.body });
+      return handleAlexaRequest(req.body, { voice: s.voice, links });
+    });
+  });
 }

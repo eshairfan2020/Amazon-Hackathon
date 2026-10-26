@@ -90,7 +90,8 @@ function productInfo(i) {
   };
 }
 
-function lowMargin(items, feePct) {
+function lowMargin(all, feePct) {
+  const items = all.filter((i) => !i.needsDetails && i.price > 0);
   const rows = items.map((i) => ({ i, e: unitEconomics({ price: i.price, cost: i.unitCost, feePct }) })).sort((a, b) => a.e.marginPct - b.e.marginPct).slice(0, 5);
   const lines = rows.map(({ i, e }) => bullet(`**${i.name}** (${i.sku}): margin **${e.marginPct}%**, profit ${money(e.unitProfit)} per unit.`));
   return {
@@ -100,7 +101,8 @@ function lowMargin(items, feePct) {
   };
 }
 
-function profitInStock(items, feePct) {
+function profitInStock(all, feePct) {
+  const items = all.filter((i) => !i.needsDetails && i.price > 0);
   const total = items.reduce((t, i) => t + Math.max(0, i.currentStock) * unitEconomics({ price: i.price, cost: i.unitCost, feePct }).unitProfit, 0);
   return { reply: `If you sold every sellable unit at today's prices, I estimate about **${money(total)}** profit after costs and a ${feePct}% fee assumption. It is a ceiling, not a forecast: slow movers will take time or discounts to sell.`, suggestions: ['Which products have the lowest margin?', 'Which products are overstocked?'] };
 }
