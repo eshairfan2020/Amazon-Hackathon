@@ -251,7 +251,6 @@ All routes are under `/api/v1` and return `{ data, meta }` or `{ error: { code, 
 ## AI tools used
 - **Claude (Anthropic)** as a coding and architecture assistant: system design, code and test generation, review, and documentation. Our team defined the requirements, integrated, tested and deployed the result.
 - In the product, the AI Business Partner uses a built-in rule-based analyst by default. An optional Amazon Bedrock model can rephrase answers when configured.
-- `[ADD ANY OTHER TOOLS YOU USED]`
 
 ## License
 MIT License
