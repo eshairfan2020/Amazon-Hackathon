@@ -31,7 +31,9 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 try {
+  if (process.env.NODE_ENV !== 'production') {
   await app.listen({ port: runtime.config.port, host: runtime.config.host });
+}
   if (runtime.config.authMode === 'demo') app.log.warn('AUTH_MODE=demo: demo-only identity is active. Never use in production.');
 } catch (err) {
   app.log.error({ err: { message: err.message } }, 'failed to start');
